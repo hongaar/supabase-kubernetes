@@ -14,10 +14,13 @@ spec:
       {{- include "supabase.db.selectorLabels" . | nindent 6 }}
   template:
     metadata:
-      {{- with .Values.db.podAnnotations }}
       annotations:
+        {{- with .Values.db.podAnnotations }}
         {{- toYaml . | nindent 8 }}
-      {{- end }}
+        {{- end }}
+        {{- if .Values.db.curlCaBundle }}
+        checksum/configmap-curl-ca-bundle: {{ include (print $.Template.BasePath "/db/curl-ca-bundle.configmap.yaml") . | sha256sum }}
+        {{- end }}
       labels:
         {{- include "supabase.db.selectorLabels" . | nindent 8 }}
     spec:
@@ -62,6 +65,10 @@ spec:
             {{- range $key, $value := .Values.db.environment }}
             - name: {{ $key }}
               value: {{ $value | quote }}
+            {{- end }}
+            {{- if .Values.db.curlCaBundle }}
+            - name: CURL_CA_BUNDLE
+              value: /etc/ssl/certs/ca-bundle.crt
             {{- end }}
             - name: POSTGRES_USER
               valueFrom:
@@ -136,6 +143,12 @@ spec:
               name: postgres-volume
               subPath: postgres-data
             {{- end }}
+            {{- if .Values.db.curlCaBundle }}
+            - name: curl-ca-bundle
+              mountPath: /etc/ssl/certs/ca-bundle.crt
+              subPath: ca-bundle.crt
+              readOnly: true
+            {{- end }}
           {{- with .Values.db.resources }}
           resources:
             {{- toYaml . | nindent 12 }}
@@ -157,6 +170,14 @@ spec:
         - name: postgres-volume
           persistentVolumeClaim:
             claimName: {{ include "supabase.db.fullname" . }}-pvc
+        {{- end }}
+        {{- if .Values.db.curlCaBundle }}
+        - name: curl-ca-bundle
+          configMap:
+            name: {{ include "supabase.db.fullname" . }}-curl-ca-bundle
+            items:
+              - key: ca-bundle.crt
+                path: ca-bundle.crt
         {{- end }}
       {{- with .Values.db.nodeSelector }}
       nodeSelector:
