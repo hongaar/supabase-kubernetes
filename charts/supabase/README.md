@@ -122,6 +122,21 @@ The secret can be created with kubectl via command-line:
 
 > If you depend on database providers like [StackGres](https://stackgres.io/), [Postgres Operator](https://github.com/zalando/postgres-operator) or self-hosted Postgres instance, fill in the secret above and modify any relevant Postgres attributes such as port or hostname (e.g. `PGPORT`, `DB_HOST`) for any relevant deployments. Refer to [values.yaml](values.yaml) for more details.
 
+### PostgreSQL CA Bundle
+
+This chart supports mounting a custom CA bundle for PostgreSQL connections via the `db.curlCaBundle` value in your `values.yaml`.
+
+- If `db.curlCaBundle` is set, a ConfigMap is created and mounted at `/etc/ssl/certs/ca-bundle.crt` in the database pod.
+- The `CURL_CA_BUNDLE` environment variable is set to this path when the value is present.
+
+```yaml
+db:
+  curlCaBundle: |
+    -----BEGIN CERTIFICATE-----
+    ...
+    -----END CERTIFICATE-----
+```
+
 ### Dashboard secret
 
 By default, a username and password is required to access the Supabase Studio dashboard. Simply change them at:

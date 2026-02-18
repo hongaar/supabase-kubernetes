@@ -1,0 +1,11 @@
+{{- if .Values.db.curlCaBundle }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "supabase.db.fullname" . }}-curl-ca-bundle
+  labels:
+    {{- include "supabase.labels" . | nindent 4 }}
+data:
+  ca-bundle.crt: |
+{{ .Values.db.curlCaBundle | indent 4 }}
+{{- end }}
