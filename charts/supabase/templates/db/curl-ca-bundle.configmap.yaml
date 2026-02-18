@@ -1,4 +1,4 @@
-{{- if .Values.db.curlCaBundle }}
+{{- if and .Values.db.curlCaBundle (not .Values.db.curlCaBundleConfigMapName) }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
