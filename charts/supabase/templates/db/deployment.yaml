@@ -18,8 +18,8 @@ spec:
         {{- with .Values.db.podAnnotations }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
-        {{- if .Values.db.curlCaBundle }}
-        checksum/configmap-curl-ca-bundle: {{ include (print $.Template.BasePath "/db/curl-ca-bundle.configmap.yaml") . | sha256sum }}
+        {{- if or .Values.db.curlCaBundle .Values.db.curlCaBundleConfigMapName }}
+        checksum/configmap-curl-ca-bundle: {{ coalesce .Values.db.curlCaBundleConfigMapName (include (print $.Template.BasePath "/db/curl-ca-bundle.configmap.yaml") . | sha256sum) }}
         {{- end }}
       labels:
         {{- include "supabase.db.selectorLabels" . | nindent 8 }}
@@ -66,7 +66,7 @@ spec:
             - name: {{ $key }}
               value: {{ $value | quote }}
             {{- end }}
-            {{- if .Values.db.curlCaBundle }}
+            {{- if or .Values.db.curlCaBundle .Values.db.curlCaBundleConfigMapName }}
             - name: CURL_CA_BUNDLE
               value: /etc/ssl/certs/ca-bundle.crt
             {{- end }}
@@ -143,7 +143,7 @@ spec:
               name: postgres-volume
               subPath: postgres-data
             {{- end }}
-            {{- if .Values.db.curlCaBundle }}
+            {{- if or .Values.db.curlCaBundle .Values.db.curlCaBundleConfigMapName }}
             - name: curl-ca-bundle
               mountPath: /etc/ssl/certs/ca-bundle.crt
               subPath: ca-bundle.crt
@@ -171,10 +171,10 @@ spec:
           persistentVolumeClaim:
             claimName: {{ include "supabase.db.fullname" . }}-pvc
         {{- end }}
-        {{- if .Values.db.curlCaBundle }}
+        {{- if or .Values.db.curlCaBundle .Values.db.curlCaBundleConfigMapName }}
         - name: curl-ca-bundle
           configMap:
-            name: {{ include "supabase.db.fullname" . }}-curl-ca-bundle
+            name: {{ .Values.db.curlCaBundleConfigMapName | default (printf "%s-curl-ca-bundle" (include "supabase.db.fullname" .)) }}
             items:
               - key: ca-bundle.crt
                 path: ca-bundle.crt
