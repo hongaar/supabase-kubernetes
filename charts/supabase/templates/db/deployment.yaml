@@ -73,6 +73,8 @@ spec:
             {{- if or .Values.db.curlCaBundle .Values.db.curlCaBundleConfigMapName }}
             - name: CURL_CA_BUNDLE
               value: /etc/ssl/certs/ca-bundle.crt
+            - name: SSL_CERT_FILE
+              value: /etc/ssl/certs/ca-bundle.crt
             {{- end }}
             - name: POSTGRES_USER
               valueFrom:
