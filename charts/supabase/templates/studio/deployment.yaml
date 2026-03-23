@@ -43,6 +43,32 @@ spec:
             - name: SUPABASE_URL
               value: http://{{ include "supabase.kong.fullname" . }}:{{ .Values.kong.service.port }}
             {{- end }}
+            {{- if .Values.db.enabled }}
+            - name: POSTGRES_HOST
+              value: {{ include "supabase.db.fullname" . }}
+            - name: POSTGRES_PORT
+              value: {{ .Values.db.service.port | quote }}
+            - name: POSTGRES_DB
+              valueFrom:
+                secretKeyRef:
+                  {{- if .Values.secret.db.secretRef }}
+                  name: {{ .Values.secret.db.secretRef }}
+                  key: {{ .Values.secret.db.secretRefKey.database | default "database" }}
+                  {{- else }}
+                  name: {{ include "supabase.secret.db" . }}
+                  key: database
+                  {{- end }}
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  {{- if .Values.secret.db.secretRef }}
+                  name: {{ .Values.secret.db.secretRef }}
+                  key: {{ .Values.secret.db.secretRefKey.password | default "password" }}
+                  {{- else }}
+                  name: {{ include "supabase.secret.db" . }}
+                  key: password
+                  {{- end }}
+            {{- end }}
             {{- if .Values.meta.enabled }}
             - name: STUDIO_PG_META_URL
               value: http://{{ include "supabase.meta.fullname" . }}:{{ .Values.meta.service.port }}
