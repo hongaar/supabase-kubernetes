@@ -135,17 +135,8 @@ db:
     # Enable SSL for postgres by specifying paths for mounted certificate key pair
     # POSTGRES_SSL_CERT: /path/to/ssl/server.crt
     # POSTGRES_SSL_KEY: /path/to/ssl/server.key
-  # SSL CA Bundle for curl operations (optional)
-  # Option A: Use existing ConfigMap (recommended to avoid Helm 1MB release secret limit)
-  #   Create ConfigMap before deploy: kubectl create configmap supabase-db-curl-ca-bundle --from-file=ca-bundle.crt=/path/to/ca.pem -n <namespace>
-  #   Or set CURL_CA_BUNDLE_FILE when running deploy.sh
-  # curlCaBundleConfigMapName: supabase-db-curl-ca-bundle
-  # Option B: Embed in values (can exceed 1MB Helm release limit with large cert chains)
-  #   PEM-encoded CA bundle for PostgreSQL TLS (e.g. for managed DB)
-  # curlCaBundle: |
-  #   -----BEGIN CERTIFICATE-----
-  #   YOUR_CA_CERTIFICATE_HERE
-  #   -----END CERTIFICATE-----
+  # SSL CA bundle ConfigMap for DB TLS trust (must contain key: ca-bundle.crt)
+  caBundleConfigMapName: ""
   # volumeMounts:
   #   - name: volume_name
   #     mountPath: /path/to/my/secret

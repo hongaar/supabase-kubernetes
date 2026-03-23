@@ -1,4 +1,6 @@
 {{- if .Values.db.enabled -}}
+{{- $dbCaCM := .Values.db.caBundleConfigMapName | default "" | trim -}}
+{{- $useCaBundle := ne $dbCaCM "" -}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -22,8 +24,8 @@ spec:
         {{- with .Values.db.podAnnotations }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
-        {{- if or .Values.db.curlCaBundle .Values.db.curlCaBundleConfigMapName }}
-        checksum/configmap-curl-ca-bundle: {{ coalesce .Values.db.curlCaBundleConfigMapName (include (print $.Template.BasePath "/db/curl-ca-bundle.configmap.yaml") . | sha256sum) }}
+        {{- if $useCaBundle }}
+        checksum/configmap-ca-bundle-name: {{ $dbCaCM | sha256sum }}
         {{- end }}
       labels:
         {{- include "supabase.db.selectorLabels" . | nindent 8 }}
@@ -70,7 +72,7 @@ spec:
             - name: {{ $key }}
               value: {{ $value | quote }}
             {{- end }}
-            {{- if or .Values.db.curlCaBundle .Values.db.curlCaBundleConfigMapName }}
+            {{- if $useCaBundle }}
             - name: CURL_CA_BUNDLE
               value: /etc/ssl/certs/ca-bundle.crt
             - name: SSL_CERT_FILE
@@ -149,7 +151,7 @@ spec:
               name: postgres-volume
               subPath: postgres-data
             {{- end }}
-            {{- if or .Values.db.curlCaBundle .Values.db.curlCaBundleConfigMapName }}
+            {{- if $useCaBundle }}
             - name: curl-ca-bundle
               mountPath: /etc/ssl/certs/ca-bundle.crt
               subPath: ca-bundle.crt
@@ -177,10 +179,10 @@ spec:
           persistentVolumeClaim:
             claimName: {{ include "supabase.db.fullname" . }}-pvc
         {{- end }}
-        {{- if or .Values.db.curlCaBundle .Values.db.curlCaBundleConfigMapName }}
+        {{- if $useCaBundle }}
         - name: curl-ca-bundle
           configMap:
-            name: {{ .Values.db.curlCaBundleConfigMapName | default (printf "%s-curl-ca-bundle" (include "supabase.db.fullname" .)) }}
+            name: {{ $dbCaCM }}
             items:
               - key: ca-bundle.crt
                 path: ca-bundle.crt

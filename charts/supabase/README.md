@@ -124,17 +124,14 @@ The secret can be created with kubectl via command-line:
 
 ### PostgreSQL CA Bundle
 
-This chart supports mounting a custom CA bundle for PostgreSQL connections via the `db.curlCaBundle` value in your `values.yaml`.
+This chart mounts a custom CA bundle for PostgreSQL connections when `db.caBundleConfigMapName` is set (ConfigMap key must be `ca-bundle.crt`).
 
-- If `db.curlCaBundle` is set, a ConfigMap is created and mounted at `/etc/ssl/certs/ca-bundle.crt` in the database pod.
-- The `CURL_CA_BUNDLE` environment variable is set to this path when the value is present.
+- The ConfigMap is mounted at `/etc/ssl/certs/ca-bundle.crt` in the database pod.
+- `CURL_CA_BUNDLE` and `SSL_CERT_FILE` are set to this path.
 
 ```yaml
 db:
-  curlCaBundle: |
-    -----BEGIN CERTIFICATE-----
-    ...
-    -----END CERTIFICATE-----
+  caBundleConfigMapName: my-cluster-ca-bundle
 ```
 
 ### Dashboard secret
